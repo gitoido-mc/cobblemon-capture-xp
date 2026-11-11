@@ -1,5 +1,5 @@
 plugins {
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.gradleup.shadow")
     id("dev.architectury.loom")
     id("architectury-plugin")
 }
@@ -15,12 +15,10 @@ loom {
 }
 
 repositories {
-    mavenCentral()
-    maven("https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/")
-    maven("https://maven.impactdev.net/repository/development/")
     maven("https://hub.spigotmc.org/nexus/content/groups/public/")
     maven("https://thedarkcolour.github.io/KotlinForForge/")
-    maven("https://maven.neoforged.net")
+    maven("https://maven.neoforged.net/releases")
+    maven("https://maven.su5ed.dev/releases")
 }
 
 val shadowBundle = configurations.create("shadowBundle") {
@@ -48,7 +46,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:${property("junit_version")}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${property("junit_version")}")
 
-    modImplementation("maven.modrinth:cobblemon-tim-core:${property("tim_core_neoforge_version")}")
+    modImplementation("us.timinc.mc.cobblemon.timcore:neoforge:${property("tim_core_version")}")
 }
 
 tasks.getByName<Test>("test") {
@@ -59,6 +57,7 @@ tasks.processResources {
     inputs.property("version", project.version)
 
     filesMatching("META-INF/neoforge.mods.toml") {
+        @Suppress("DEPRECATION", "We'll figure it out when Gradle 10 releases")
         expand(project.properties)
     }
 }
@@ -68,6 +67,11 @@ tasks {
     jar {
         archiveBaseName.set("${rootProject.property("archives_base_name")}-${project.name}")
         archiveClassifier.set("dev-slim")
+    }
+
+    sourcesJar {
+        dependsOn(project(":common").tasks.named("sourcesJar"))
+        from(project(":common").tasks.named<Jar>("sourcesJar").get().archiveFile.map { zipTree(it) })
     }
 
     shadowJar {
@@ -80,6 +84,11 @@ tasks {
     remapJar {
         dependsOn(shadowJar)
         inputFile.set(shadowJar.flatMap { it.archiveFile })
+        archiveBaseName.set("${rootProject.property("archives_base_name")}-${project.name}")
+        archiveVersion.set("${rootProject.version}")
+    }
+
+    remapSourcesJar {
         archiveBaseName.set("${rootProject.property("archives_base_name")}-${project.name}")
         archiveVersion.set("${rootProject.version}")
     }
