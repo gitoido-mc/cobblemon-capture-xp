@@ -18,7 +18,6 @@ repositories {
     maven("https://hub.spigotmc.org/nexus/content/groups/public/")
     maven("https://thedarkcolour.github.io/KotlinForForge/")
     maven("https://maven.neoforged.net/releases")
-    maven("https://maven.su5ed.dev/releases")
 }
 
 val shadowBundle = configurations.create("shadowBundle") {
@@ -46,7 +45,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:${property("junit_version")}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${property("junit_version")}")
 
-    modImplementation("us.timinc.mc.cobblemon.timcore:neoforge:${property("tim_core_version")}")
+    modImplementation("us.timinc.mc.cobblemon.timcore:neoforge:${property("tim_core_version")}") { isTransitive = false }
 }
 
 tasks {
@@ -70,6 +69,8 @@ tasks {
     }
 
     shadowJar {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+
         exclude("fabric.mod.json")
         archiveClassifier.set("dev-shadow")
         archiveBaseName.set("${rootProject.property("archives_base_name")}-${project.name}")
